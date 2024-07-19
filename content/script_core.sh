@@ -111,15 +111,17 @@ SEND_TG_MSG() {
         exit 0
     fi
     if [ "${TELEGRAM_CHAT_ID}" != "" ]; then
-        if [ "${TG_PROXY}" != "" ]; then
-            PROXY_PARAM="-x ${TG_PROXY}"
-        fi
         title="$TELEGRAM_TITLE $1"
         timestamp="$(DATE_TIME)"
         msg="$title $timestamp\n$(echo "$2" | sed -e 's|\\|\\\\|g' -e 's|\n|\\n|g' -e 's|\t|\\t|g' -e 's|\"|\\"|g')"
         entities="[{\"offset\":0,\"length\":${#title},\"type\":\"bold\"},{\"offset\":$((${#title} + 1)),\"length\":${#timestamp},\"type\":\"italic\"}]"
         data="{\"chat_id\":\"$TELEGRAM_CHAT_ID\",\"text\":\"$msg\",\"entities\":$entities,\"disable_notification\": true}"
-        curl -s "${PROXY_PARAM}" -o /dev/null -H 'Content-Type: application/json' -X POST -d "$data" https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
+        if [ "${TG_PROXY}" != "" ]; then
+            PROXY_PARAM="-x ${TG_PROXY}"
+            curl -s "${PROXY_PARAM}" -o /dev/null -H 'Content-Type: application/json' -X POST -d "$data" https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
+        else
+            curl -s -o /dev/null -H 'Content-Type: application/json' -X POST -d "$data" https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
+        fi
     fi
 }
 
